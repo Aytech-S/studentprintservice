@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Print Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      animation: floatForm 3s infinite alternate ease-in-out;
+      position: relative;
+      width: 320px;
+    }
+    @keyframes floatForm {
+      from { transform: translateY(-10px); }
+      to { transform: translateY(10px); }
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      font-size: 24px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #ff758c;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #ff5274;
+    }
+    .hidden { display: none; }
+    .footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Student Print Request</h2>
+    <form id="printForm">
+      <input type="tel" id="mobile" placeholder="Mobile Number" pattern="[0-9]{10}" required />
+      <input type="text" id="name" class="hidden" placeholder="Your Name" required />
+      <input type="text" id="branch" class="hidden" placeholder="Your Branch" required />
+      <input type="text" id="group" class="hidden" placeholder="Your Group" required />
+      <select id="year" class="hidden" required>
+        <option value="">Select Year</option>
+        <option value="1">1st Year</option>
+        <option value="2">2nd Year</option>
+        <option value="3">3rd Year</option>
+        <option value="4">4th Year</option>
+      </select><div class="hidden" id="fileSelection">
+    <label for="fileDropdown">Select Files to Print:</label>
+    <select id="fileDropdown" multiple required>
+      <option value="file1.pdf" data-price="70">File1.pdf - ₹70</option>
+      <option value="file2.docx" data-price="280">File2.docx - ₹280</option>
+    </select>
+  </div>
+
+  <div class="hidden" id="paymentWrapper">
+    <label for="paymentMode">Select Mode of Payment:</label>
+    <select id="paymentMode" required>
+      <option value="">-- Select --</option>
+      <option value="UPI">UPI</option>
+      <option value="Cash">Cash</option>
+    </select>
+  </div>
+
+  <p id="paymentMessage" class="hidden"></p>
+  <button type="button" id="payNow" class="hidden">Pay Now</button>
+  <button type="button" id="paymentDone" class="hidden">Payment Done</button>
+  <button type="submit" class="hidden">Submit</button>
+</form>
+
+  </div>  <div class="footer">&copy; 2025 Student Print Service</div>  <script>
+    let step = 0;
+    const fields = ["mobile", "name", "branch", "group", "year", "fileSelection", "paymentWrapper"];
+    document.getElementById("mobile").addEventListener("input", () => {
+      if (document.getElementById("mobile").value.length === 10) {
+        document.getElementById(fields[step + 1]).classList.remove("hidden");
+        step++;
+      }
+    });
+
+    document.getElementById("year").addEventListener("change", () => {
+      document.getElementById("fileSelection").classList.remove("hidden");
+    });
+
+    document.getElementById("fileDropdown").addEventListener("change", () => {
+      document.getElementById("paymentWrapper").classList.remove("hidden");
+    });
+
+    document.getElementById("paymentMode").addEventListener("change", function () {
+      let selectedOptions = document.getElementById("fileDropdown").selectedOptions;
+      let totalAmount = 0;
+      for (let opt of selectedOptions) {
+        totalAmount += parseInt(opt.dataset.price);
+      }
+
+      let paymentMode = this.value;
+      let message = "";
+      let amount = 0;
+      let fullAmount = totalAmount;
+
+      if (paymentMode === "UPI") {
+        amount = fullAmount;
+        message = `Pay Now (Full): ₹${amount}`;
+      } else if (paymentMode === "Cash") {
+        amount = Math.round(fullAmount * 0.4);
+        message = `Pay 40% Advance via UPI: ₹${amount}<br>Remaining ₹${fullAmount - amount} will be paid in cash.`;
+      }
+
+      document.getElementById("paymentMessage").innerHTML = message;
+      document.getElementById("paymentMessage").classList.remove("hidden");
+      document.getElementById("payNow").classList.remove("hidden");
+    });
+
+    document.getElementById("payNow").addEventListener("click", function () {
+      let msg = document.getElementById("paymentMessage").textContent;
+      let amount = parseInt(msg.match(/\d+/)[0]);
+      let upiLink = `upi://pay?pa=7742065298@ybl&pn=StudentPrintService&am=${amount}&cu=INR&tn=Printing`;
+      window.location.href = upiLink;
+
+      setTimeout(() => {
+        document.getElementById("paymentDone").classList.remove("hidden");
+      }, 3000);
+    });
+
+    document.getElementById("paymentDone").addEventListener("click", function () {
+      alert("Payment Verified! Proceeding with order.");
+      document.querySelector("button[type=submit]").classList.remove("hidden");
+    });
+
+    document.getElementById("printForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      const deliveryDate = new Date();
+      deliveryDate.setDate(deliveryDate.getDate() + 2);
+
+      alert("Thank you! Your order has been placed.\nDelivery Date: " + deliveryDate.toLocaleDateString());
+    });
+  </script></body>
+</html>
