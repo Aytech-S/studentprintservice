@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Print Form</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(45deg, #ff9a9e, #fad0c4);
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
       flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding-bottom: 60px; /* For space below */
     }
     .form-container {
       background: white;
@@ -21,9 +21,8 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       animation: floatForm 3s infinite alternate ease-in-out;
-      position: relative;
       width: 320px;
-      margin-bottom: 20px;
+      margin-top: auto;
     }
     @keyframes floatForm {
       from { transform: translateY(-10px); }
@@ -56,25 +55,37 @@
     .footer {
       font-size: 14px;
       color: #555;
-      margin-top: 10px;
+      margin-top: 20px;
+      text-align: center;
     }
-    .whatsapp-button {
+    .whatsapp-float {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
       background-color: #25D366;
       color: white;
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 16px;
-      margin-top: 10px;
+      padding: 10px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       text-decoration: none;
-      display: inline-block;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .whatsapp-button:hover {
+    .whatsapp-float:hover {
       background-color: #1ebc59;
+    }
+    .whatsapp-float img {
+      width: 20px;
+      height: 20px;
     }
   </style>
 </head>
 <body>
+
   <div class="form-container">
     <h2>Student Print Request</h2>
     <form id="printForm">
@@ -89,6 +100,7 @@
         <option value="3">3rd Year</option>
         <option value="4">4th Year</option>
       </select>
+
       <div class="hidden" id="fileSelection">
         <label for="fileDropdown">Select Files to Print:</label>
         <select id="fileDropdown" multiple required>
@@ -111,20 +123,38 @@
       <button type="button" id="paymentDone" class="hidden">Payment Done</button>
       <button type="submit" class="hidden">Submit</button>
     </form>
-
-    <a href="https://wa.me/917742065298?text=Hello%2C%20I%20want%20to%20place%20a%20print%20order." class="whatsapp-button" target="_blank">Contact on WhatsApp</a>
   </div>
 
+  <!-- WhatsApp Floating Button -->
+  <a href="https://wa.me/917742065298?text=Hello%2C%20I%20want%20to%20place%20a%20print%20order." class="whatsapp-float" target="_blank">
+    <img src="https://img.icons8.com/color/48/000000/whatsapp.png" alt="WhatsApp" />
+    CONTACT ME
+  </a>
+
+  <!-- Footer -->
   <div class="footer">&copy; Aayush | All rights are reserved 2025 | CS</div>
 
+  <!-- Scripts -->
   <script>
     let step = 0;
-    const fields = ["mobile", "name", "branch", "group", "year", "fileSelection", "paymentWrapper"];
+    const fields = ["name", "branch", "group", "year"];
+
     document.getElementById("mobile").addEventListener("input", () => {
       if (document.getElementById("mobile").value.length === 10) {
-        document.getElementById(fields[step + 1]).classList.remove("hidden");
+        showNextField();
+      }
+    });
+
+    function showNextField() {
+      if (step < fields.length) {
+        document.getElementById(fields[step]).classList.remove("hidden");
         step++;
       }
+    }
+
+    fields.forEach(field => {
+      document.getElementById(field).addEventListener("input", showNextField);
+      document.getElementById(field).addEventListener("change", showNextField);
     });
 
     document.getElementById("year").addEventListener("change", () => {
@@ -145,14 +175,13 @@
       let paymentMode = this.value;
       let message = "";
       let amount = 0;
-      let fullAmount = totalAmount;
 
       if (paymentMode === "UPI") {
-        amount = fullAmount;
+        amount = totalAmount;
         message = `Pay Now (Full): ₹${amount}`;
       } else if (paymentMode === "Cash") {
-        amount = Math.round(fullAmount * 0.4);
-        message = `Pay 40% Advance via UPI: ₹${amount}<br>Remaining ₹${fullAmount - amount} will be paid in cash.`;
+        amount = Math.round(totalAmount * 0.4);
+        message = `Pay 40% Advance via UPI: ₹${amount}<br>Remaining ₹${totalAmount - amount} will be paid in cash.`;
       }
 
       document.getElementById("paymentMessage").innerHTML = message;
@@ -184,20 +213,28 @@
       alert("Thank you! Your order has been placed.\nDelivery Date: " + deliveryDate.toLocaleDateString());
     });
 
-    // AI Voice Welcome
-    window.addEventListener("load", () => {
-      const welcome = new SpeechSynthesisUtterance("Welcome to the Student Print Service. We're happy to help you!");
-      welcome.pitch = 1.2;
-      welcome.rate = 0.95;
-      welcome.lang = "en-US";
+    // AI Voice Welcome (Safe and working across browsers)
+    window.onload = function () {
+      const speak = () => {
+        const msg = new SpeechSynthesisUtterance("Welcome to the Student Print Service. We are happy to help you!");
+        msg.rate = 0.9;
+        msg.pitch = 1.2;
+        msg.lang = "en-US";
+        const voices = speechSynthesis.getVoices();
+        msg.voice = voices.find(voice => voice.name.includes("Female") || voice.name.includes("Samantha")) || voices[0];
+        speechSynthesis.speak(msg);
+      };
 
-      const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(v => v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google US English"));
-
-      if (femaleVoice) welcome.voice = femaleVoice;
-
-      window.speechSynthesis.speak(welcome);
-    });
+      if (typeof speechSynthesis !== "undefined") {
+        const voicesLoaded = speechSynthesis.getVoices().length > 0;
+        if (voicesLoaded) {
+          speak();
+        } else {
+          speechSynthesis.onvoiceschanged = speak;
+        }
+      }
+    };
   </script>
+
 </body>
 </html>
