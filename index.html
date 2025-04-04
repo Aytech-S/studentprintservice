@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,6 +13,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      flex-direction: column;
     }
     .form-container {
       background: white;
@@ -21,6 +23,7 @@
       animation: floatForm 3s infinite alternate ease-in-out;
       position: relative;
       width: 320px;
+      margin-bottom: 20px;
     }
     @keyframes floatForm {
       from { transform: translateY(-10px); }
@@ -51,12 +54,23 @@
     }
     .hidden { display: none; }
     .footer {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
       font-size: 14px;
       color: #555;
+      margin-top: 10px;
+    }
+    .whatsapp-button {
+      background-color: #25D366;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-top: 10px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .whatsapp-button:hover {
+      background-color: #1ebc59;
     }
   </style>
 </head>
@@ -64,39 +78,61 @@
   <div class="form-container">
     <h2>Student Print Request</h2>
     <form id="printForm">
-      <input type="tel" id="mobile" placeholder="Mobile Number" required />
-      <input type="text" id="name" class="hidden" placeholder="Your Name" />
-      <input type="text" id="branch" class="hidden" placeholder="Your Branch" />
-      <input type="text" id="group" class="hidden" placeholder="Your Group" />
-      <input type="number" id="year" class="hidden" placeholder="Year of Study" /><div class="hidden" id="fileSelection">
-    <label for="fileDropdown">Select Files to Print:</label>
-    <select id="fileDropdown" multiple>
-      <option value="file1.pdf" data-price="70">File1.pdf - ₹70</option>
-      <option value="file2.docx" data-price="280">File2.docx - ₹280</option>
-    </select>
+      <input type="tel" id="mobile" placeholder="Mobile Number" pattern="[0-9]{10}" required />
+      <input type="text" id="name" class="hidden" placeholder="Your Name" required />
+      <input type="text" id="branch" class="hidden" placeholder="Your Branch" required />
+      <input type="text" id="group" class="hidden" placeholder="Your Group" required />
+      <select id="year" class="hidden" required>
+        <option value="">Select Year</option>
+        <option value="1">1st Year</option>
+        <option value="2">2nd Year</option>
+        <option value="3">3rd Year</option>
+        <option value="4">4th Year</option>
+      </select>
+      <div class="hidden" id="fileSelection">
+        <label for="fileDropdown">Select Files to Print:</label>
+        <select id="fileDropdown" multiple required>
+          <option value="file1.pdf" data-price="70">File1.pdf - ₹70</option>
+          <option value="file2.docx" data-price="280">File2.docx - ₹280</option>
+        </select>
+      </div>
+
+      <div class="hidden" id="paymentWrapper">
+        <label for="paymentMode">Select Mode of Payment:</label>
+        <select id="paymentMode" required>
+          <option value="">-- Select --</option>
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+        </select>
+      </div>
+
+      <p id="paymentMessage" class="hidden"></p>
+      <button type="button" id="payNow" class="hidden">Pay Now</button>
+      <button type="button" id="paymentDone" class="hidden">Payment Done</button>
+      <button type="submit" class="hidden">Submit</button>
+    </form>
+
+    <a href="https://wa.me/917742065298?text=Hello%2C%20I%20want%20to%20place%20a%20print%20order." class="whatsapp-button" target="_blank">Contact on WhatsApp</a>
   </div>
 
-  <div class="hidden" id="paymentWrapper">
-    <label for="paymentMode">Select Mode of Payment:</label>
-    <select id="paymentMode">
-      <option value="">-- Select --</option>
-      <option value="UPI">UPI</option>
-      <option value="Cash">Cash</option>
-    </select>
-  </div>
+  <div class="footer">&copy; Aayush | All rights are reserved 2025 | CS</div>
 
-  <p id="paymentMessage" class="hidden"></p>
-  <button type="button" id="payNow" class="hidden">Pay Now</button>
-  <button type="button" id="paymentDone" class="hidden">Payment Done</button>
-  <button type="submit" class="hidden">Submit</button>
-</form>
-
-  </div>  <div class="footer">&copy; 2025 Student Print Service</div>  <script>
+  <script>
     let step = 0;
     const fields = ["mobile", "name", "branch", "group", "year", "fileSelection", "paymentWrapper"];
     document.getElementById("mobile").addEventListener("input", () => {
-      document.getElementById(fields[step]).classList.remove("hidden");
-      step++;
+      if (document.getElementById("mobile").value.length === 10) {
+        document.getElementById(fields[step + 1]).classList.remove("hidden");
+        step++;
+      }
+    });
+
+    document.getElementById("year").addEventListener("change", () => {
+      document.getElementById("fileSelection").classList.remove("hidden");
+    });
+
+    document.getElementById("fileDropdown").addEventListener("change", () => {
+      document.getElementById("paymentWrapper").classList.remove("hidden");
     });
 
     document.getElementById("paymentMode").addEventListener("change", function () {
@@ -129,9 +165,7 @@
       let amount = parseInt(msg.match(/\d+/)[0]);
       let upiLink = `upi://pay?pa=7742065298@ybl&pn=StudentPrintService&am=${amount}&cu=INR&tn=Printing`;
       window.location.href = upiLink;
-    });
 
-    document.getElementById("payNow").addEventListener("click", () => {
       setTimeout(() => {
         document.getElementById("paymentDone").classList.remove("hidden");
       }, 3000);
@@ -149,5 +183,21 @@
 
       alert("Thank you! Your order has been placed.\nDelivery Date: " + deliveryDate.toLocaleDateString());
     });
-  </script></body>
+
+    // AI Voice Welcome
+    window.addEventListener("load", () => {
+      const welcome = new SpeechSynthesisUtterance("Welcome to the Student Print Service. We're happy to help you!");
+      welcome.pitch = 1.2;
+      welcome.rate = 0.95;
+      welcome.lang = "en-US";
+
+      const voices = window.speechSynthesis.getVoices();
+      const femaleVoice = voices.find(v => v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google US English"));
+
+      if (femaleVoice) welcome.voice = femaleVoice;
+
+      window.speechSynthesis.speak(welcome);
+    });
+  </script>
+</body>
 </html>
